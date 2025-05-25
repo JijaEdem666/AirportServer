@@ -1210,14 +1210,14 @@ class ServiceHost():
                 """
                 result = await conn.execute(
                     query,
-                    client.first_name,
-                    client.second_name,
-                    client.third_name,
+                    client.firstname,
+                    client.lastname,
+                    client.patronymic,
                     client.login,
                     client.password,
                     client.phone,
-                    client.passport_seria,
-                    client.passport_number
+                    client.passSeries,
+                    client.passNumber
                 )
 
                 return {"message": "User created", "user_id": result}
