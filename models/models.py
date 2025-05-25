@@ -2,14 +2,14 @@ from pydantic import BaseModel, constr
 from typing import Optional, List
 
 class ClientCreate(BaseModel):
-    first_name: constr(max_length=20)
-    second_name: constr(max_length=20)
-    third_name: Optional[constr(max_length=20)] = None
-    login: constr(max_length=36)
-    password: constr(max_length=36)
-    phone: constr(max_length=15)
-    passport_seria: constr(max_length=4)
-    passport_number: constr(max_length=6)
+    firstname: str
+    lastname: str
+    patronymic: str
+    login: str
+    password: str
+    phone: str
+    passSeries: str
+    passNumber: str
 
 # Модель для запроса
 class LoginRequest(BaseModel):
