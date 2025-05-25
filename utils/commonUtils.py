@@ -6,10 +6,10 @@ class CommonUtils:
     @staticmethod
     async def get_db_connection():
         return await asyncpg.connect(
-            user="postgres",
-            password="root",
+            user="kurumoch_user",
+            password="tnK2y5F5yBuVMOzLN3tplHKaEcWHhvti",
             database="kurumoch",
-            host="localhost"
+            host="dpg-d0pind8dl3ps73ar6hvg-a.frankfurt-postgres.render.com"
         )
 
     @staticmethod
