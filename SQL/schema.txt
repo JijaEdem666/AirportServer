@@ -1,0 +1,157 @@
+CREATE TABLE IF NOT EXISTS public.admin
+(
+    id_admin integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    login character varying(36) COLLATE pg_catalog."default" NOT NULL,
+    password character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT admin_pkey PRIMARY KEY (id_admin),
+    CONSTRAINT admin_login_key UNIQUE (login)
+)
+
+CREATE TABLE IF NOT EXISTS public.airline
+(
+    id_airline integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    airline_name character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT airline_pkey PRIMARY KEY (id_airline)
+)
+
+CREATE TABLE IF NOT EXISTS public.airplane
+(
+    id_airplane integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    airplane_name character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    model character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    flight_distance integer NOT NULL,
+    airline_id_airline integer,
+    CONSTRAINT airplane_pkey PRIMARY KEY (id_airplane),
+    CONSTRAINT airplane_airline_id_airline_fkey FOREIGN KEY (airline_id_airline)
+        REFERENCES public.airline (id_airline) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+CREATE TABLE IF NOT EXISTS public.cabin
+(
+    airplane_id_airplane integer,
+    zone_number integer NOT NULL,
+    zone1 integer NOT NULL,
+    zone2 integer,
+    zone3 integer,
+    CONSTRAINT cabin_airplane_id_airplane_fkey FOREIGN KEY (airplane_id_airplane)
+        REFERENCES public.airplane (id_airplane) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT cabin_zone1_fkey FOREIGN KEY (zone1)
+        REFERENCES public.zone (id_zone) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT cabin_zone2_fkey FOREIGN KEY (zone2)
+        REFERENCES public.zone (id_zone) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT cabin_zone3_fkey FOREIGN KEY (zone3)
+        REFERENCES public.zone (id_zone) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+CREATE TABLE IF NOT EXISTS public.city
+(
+    id_city integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    city_name character varying(25) COLLATE pg_catalog."default" NOT NULL,
+    distance integer NOT NULL,
+    CONSTRAINT city_pkey PRIMARY KEY (id_city)
+)
+
+CREATE TABLE IF NOT EXISTS public.client
+(
+    id_client integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    first_name character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    second_name character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    third_name character varying(20) COLLATE pg_catalog."default",
+    login character varying(36) COLLATE pg_catalog."default" NOT NULL,
+    password character varying(36) COLLATE pg_catalog."default" NOT NULL,
+    phone character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    passport_seria character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    passport_number character varying(6) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT client_pkey PRIMARY KEY (id_client),
+    CONSTRAINT client_login_key UNIQUE (login)
+)
+
+CREATE TABLE IF NOT EXISTS public.client_has_ticket
+(
+    client_id_client integer NOT NULL,
+    ticket_id_ticket integer NOT NULL,
+    first_name character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    second_name character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    third_name character varying(20) COLLATE pg_catalog."default",
+    passport_seria character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    passport_number character varying(6) COLLATE pg_catalog."default" NOT NULL,
+    status boolean NOT NULL,
+    CONSTRAINT client_has_ticket_pkey PRIMARY KEY (client_id_client, ticket_id_ticket),
+    CONSTRAINT client_has_ticket_client_id_client_fkey FOREIGN KEY (client_id_client)
+        REFERENCES public.client (id_client) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT client_has_ticket_ticket_id_ticket_fkey FOREIGN KEY (ticket_id_ticket)
+        REFERENCES public.ticket (id_ticket) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+CREATE TABLE IF NOT EXISTS public.flight
+(
+    id_flight integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    flight_number character varying(7) COLLATE pg_catalog."default" NOT NULL,
+    departure_date date NOT NULL,
+    departure_time time without time zone NOT NULL,
+    arrival_time time without time zone,
+    airline_id_airline integer,
+    airplane_id_airplane integer,
+    arrival_city integer,
+    CONSTRAINT flight_pkey PRIMARY KEY (id_flight),
+    CONSTRAINT flight_airline_id_airline_fkey FOREIGN KEY (airline_id_airline)
+        REFERENCES public.airline (id_airline) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT flight_airplane_id_airplane_fkey FOREIGN KEY (airplane_id_airplane)
+        REFERENCES public.airplane (id_airplane) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT flight_arrival_city_fkey FOREIGN KEY (arrival_city)
+        REFERENCES public.city (id_city) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+CREATE TABLE IF NOT EXISTS public.ticket
+(
+    id_ticket integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    flight_id_flight integer,
+    price integer NOT NULL,
+    seat_number character varying(4) COLLATE pg_catalog."default",
+    CONSTRAINT ticket_pkey PRIMARY KEY (id_ticket),
+    CONSTRAINT ticket_flight_id_flight_fkey FOREIGN KEY (flight_id_flight)
+        REFERENCES public.flight (id_flight) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+CREATE TABLE IF NOT EXISTS public.zone
+(
+    id_zone integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    passes integer NOT NULL,
+    rows integer NOT NULL,
+    seats_per_row integer NOT NULL,
+    zone_type_id integer,
+    CONSTRAINT zone_pkey PRIMARY KEY (id_zone),
+    CONSTRAINT zone_zone_type_id_fkey FOREIGN KEY (zone_type_id)
+        REFERENCES public.zone_type (id_zone_type) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+CREATE TABLE IF NOT EXISTS public.zone_type
+(
+    id_zone_type integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    type_name character varying(12) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT zone_type_pkey PRIMARY KEY (id_zone_type)
+)
