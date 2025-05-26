@@ -178,26 +178,6 @@ class ServiceHost():
                     # Получаем информацию о кабине
                     cabin = await get_cabin_details(conn, record['id_airplane'])
 
-                    zones = []
-                    for i in range(1, 4):
-                        zone_id = cabin[f'zone{i}']
-                        if zone_id:
-                            zone = await conn.fetchrow(
-                                """
-                                SELECT z.*, zt.type_name 
-                                FROM zone z
-                                JOIN zone_type zt ON z.zone_type_id = zt.id_zone_type
-                                WHERE z.id_zone = $1
-                                """,
-                                zone_id
-                            )
-                            zones.append({
-                                "passes": zone['passes'],
-                                "rows": zone['rows'],
-                                "seatsPerRow": zone['seats_per_row'],
-                                "type": zone['type_name']
-                            })
-
                     flight = {
                         "id": flight_id,
                         "number": record['flight_number'],
@@ -226,7 +206,7 @@ class ServiceHost():
                             "name": record['airplane_name'],
                             "model": record['model'],
                             "flightDistance": record['flight_distance'],
-                            "cabin": {"zones": zones}
+                            "cabin": cabin
                         }
                     }
                     tickets.append(
