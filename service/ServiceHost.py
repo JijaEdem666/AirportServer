@@ -1348,7 +1348,7 @@ class ServiceHost():
                     client.passNumber
                 )
 
-                return {"message": "User created", "user_id": result}
+                return {"message": "User created", "id": result}
 
             except asyncpg.exceptions.UniqueViolationError:
                 raise HTTPException(status_code=400, detail="Login already exists")
