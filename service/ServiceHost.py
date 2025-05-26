@@ -517,6 +517,40 @@ class ServiceHost():
                         record['airplane_id_airplane']
                     )
 
+                    cabin = await conn.fetchrow(
+                        """
+                        SELECT 
+                        airplane_id_airplane,
+                        zone_number,
+                        zone1,
+                        zone2,
+                        zone3
+                    FROM cabin 
+                    WHERE airplane_id_airplane = $1
+                        """,
+                        plane['id_airplane']
+                    )
+
+                    zones = []
+                    for i in range(1, 4):
+                        zone_id = cabin[f'zone{i}']
+                        if zone_id:
+                            zone = await conn.fetchrow(
+                                """
+                                SELECT z.*, zt.type_name 
+                                FROM zone z
+                                JOIN zone_type zt ON z.zone_type_id = zt.id_zone_type
+                                WHERE z.id_zone = $1
+                                """,
+                                zone_id
+                            )
+                            zones.append({
+                                "passes": zone['passes'],
+                                "rows": zone['rows'],
+                                "seatsPerRow": zone['seats_per_row'],
+                                "type": zone['type_name']
+                            })
+
                     flights.append({
                         "id": record['id_flight'],
                         "number": record['flight_number'],
@@ -531,9 +565,22 @@ class ServiceHost():
                             "arrivalHour": int(str(record['arrival_time']).split(':')[0]),
                             "arrivalMinutes": int(str(record['arrival_time']).split(':')[1])
                         },
-                        "city": dict(city),
-                        "airline": dict(airline),
-                        "plane": dict(plane)
+                        "city": {
+                            "id": city['id_city'],
+                            "name": city['city_name'],
+                            "distance": city['distance']
+                        },
+                        "airline": {
+                            "id": airline['id_airline'],
+                            "name": airline['airline_name']
+                        },
+                        "plane": {
+                            "id": plane['id_airplane'],
+                            "name": plane['airplane_name'],
+                            "model": plane['model'],
+                            "flightDistance": plane['flight_distance'],
+                            "cabin": {"zones": zones}
+                        }
                     })
 
                 return flights
@@ -550,7 +597,50 @@ class ServiceHost():
                     "SELECT * FROM airplane WHERE airline_id_airline = $1",
                     airline_id
                 )
-                return [dict(plane) for plane in planes]
+                dicks = []
+                for plane in planes:
+                    cabin = await conn.fetchrow(
+                        """
+                        SELECT 
+                        airplane_id_airplane,
+                        zone_number,
+                        zone1,
+                        zone2,
+                        zone3
+                    FROM cabin 
+                    WHERE airplane_id_airplane = $1
+                        """,
+                        plane['id_airplane']
+                    )
+
+                    zones = []
+                    for i in range(1, 4):
+                        zone_id = cabin[f'zone{i}']
+                        if zone_id:
+                            zone = await conn.fetchrow(
+                                """
+                                SELECT z.*, zt.type_name 
+                                FROM zone z
+                                JOIN zone_type zt ON z.zone_type_id = zt.id_zone_type
+                                WHERE z.id_zone = $1
+                                """,
+                                zone_id
+                            )
+                            zones.append({
+                                "passes": zone['passes'],
+                                "rows": zone['rows'],
+                                "seatsPerRow": zone['seats_per_row'],
+                                "type": zone['type_name']
+                            })
+                    dick = {
+                        "id": plane['id_airplane'],
+                        "name": plane['airplane_name'],
+                        "model": plane['model'],
+                        "flightDistance": plane['flight_distance'],
+                        "cabin": cabin
+                    }
+                    dicks.append(dick)
+                return dicks
 
             finally:
                 await conn.close()
