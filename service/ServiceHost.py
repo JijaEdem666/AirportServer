@@ -223,6 +223,20 @@ class ServiceHost():
                             }
                         }
                     )
+                bookings.append({
+                    "user": {
+                        "id": records[-1]['id_client'],
+                        "firstname": records[-1]['c_first_name'],
+                        "lastname": records[-1]['c_second_name'],
+                        "patronymic": records[-1]['c_third_name'],
+                        "email": records[-1]['login'],
+                        "phone": records[-1]['phone'],
+                        "passSeries": records[-1]['c_passport_seria'],
+                        "passNumber": records[-1]['c_passport_number']
+                    },
+                    "flight": flight,
+                    "tickets": tickets
+                })
 
                 return bookings
 
