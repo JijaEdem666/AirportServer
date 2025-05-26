@@ -1336,7 +1336,7 @@ class ServiceHost():
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                     RETURNING id_client
                 """
-                result = await conn.execute(
+                result = await conn.fetchval(
                     query,
                     client.firstname,
                     client.lastname,
@@ -1347,7 +1347,7 @@ class ServiceHost():
                     client.passSeries,
                     client.passNumber
                 )
-                print(result)
+
                 return {"message": "User created", "user_id": result}
 
             except asyncpg.exceptions.UniqueViolationError:
