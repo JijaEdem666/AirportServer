@@ -678,7 +678,9 @@ class ServiceHost():
                         "name": plane['airplane_name'],
                         "model": plane['model'],
                         "flightDistance": plane['flight_distance'],
-                        "cabin": cabin
+                        "cabin": {
+                            "zones": zones
+                        }
                     }
                     dicks.append(dick)
                 return dicks
