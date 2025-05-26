@@ -144,52 +144,6 @@ class BookingRequest(BaseModel):
     tickets: List[TicketRequest]
 
 # Модель ответа для бронирования
-class AirlineNameResponse(BaseModel):
-    id: int
-    name: str
-
-class ZoneResponse(BaseModel):
-    passes: int
-    rows: int
-    seatsPerRow: int
-    type: str
-
-class CabinResponse(BaseModel):
-    zones: List[ZoneResponse]
-
-class PlaneResponse(BaseModel):
-    id: int
-    name: str
-    model: str
-    flightDistance: int
-    cabin: CabinResponse
-
-class FlightResponse(BaseModel):
-    id: int
-    number: str
-    departureDate: DateModel
-    flightTiming: TimeModel
-    city: CityResponse
-    airline: AirlineNameResponse
-    plane: PlaneResponse
-
-class TicketResponse(BaseModel):
-    id: int
-    seat: str
-    price: int
-    isCancelled: bool
-
-class PassengerResponse(BaseModel):
-    lastname: str
-    firstname: str
-    patronymic: Optional[str] = None
-    passSeries: str
-    passNumber: str
-
-class BookingResponse(BaseModel):
-    flight: FlightResponse
-    tickets: List[TicketResponse]
-    passengers: List[PassengerResponse]
 
 # Модель для ЛК
 class UserUpdate(BaseModel):

@@ -6,7 +6,7 @@ from datetime import datetime, time
 
 from models.models import ClientCreate, UserResponse, LoginRequest, CityCreate, CityResponse, CityUpdate,\
     AirplaneResponse, AirplaneCreate, AirplaneUpdate, AirlineResponse, AirlineCreate, AirlineUpdate, FlightCreate, \
-    FlightUpdate, BookingRequest, BookingResponse, UserUpdate
+    FlightUpdate, BookingRequest, UserUpdate
 from typing import List, Optional
 from utils.commonUtils import CommonUtils
 
