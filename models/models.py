@@ -136,12 +136,12 @@ class TicketRequest(BaseModel):
     seat: str
     price: int
     isCancelled: bool
+    passenger: Passenger
 
 class BookingRequest(BaseModel):
     user: dict
     flight: dict
     tickets: List[TicketRequest]
-    passengers: List[Passenger]
 
 # Модель ответа для бронирования
 class AirlineNameResponse(BaseModel):

@@ -125,85 +125,126 @@ class ServiceHost():
                     t.seat_number,
                     t.price,
                     cht.status as ticket_status,
-                    pass.first_name,
-                    pass.second_name,
-                    pass.third_name,
-                    pass.passport_seria,
-                    pass.passport_number
+                    cht.first_name as p_first_name,
+                    cht.second_name as p_second_name,
+                    cht.third_name as p_third_name,
+                    cht.passport_seria as p_passport_seria,
+                    cht.passport_number as p_passport_number,
+                    cl.id_client,
+                    cl.first_name as c_first_name,
+                    cl.second_name as c_second_name,
+                    cl.third_name as c_third_name,
+                    cl.login,
+                    cl.phone,
+                    cl.passport_seria as c_passport_seria,
+                    cl.passport_number as c_passport_number
                 FROM client_has_ticket cht
                 JOIN ticket t ON cht.ticket_id_ticket = t.id_ticket
                 JOIN flight f ON t.flight_id_flight = f.id_flight
                 JOIN city c ON f.arrival_city = c.id_city
                 JOIN airline a ON f.airline_id_airline = a.id_airline
                 JOIN airplane p ON f.airplane_id_airplane = p.id_airplane
-                JOIN client pass ON cht.client_id_client = pass.id_client
+                JOIN client cl ON cht.client_id_client = cl.id_client
                 WHERE cht.client_id_client = $1
                 """
 
                 records = await conn.fetch(query, client_id)
 
                 # Группировка по рейсам
-                bookings = {}
+                bookings = []
+                if len(records) != 0:
+                    flag_id = records[0]['flight_id']
+                flight = {}
+                tickets = []
                 for record in records:
                     flight_id = record['flight_id']
-                    if flight_id not in bookings:
-                        # Получаем информацию о кабине
-                        cabin = await get_cabin_details(conn, record['id_airplane'])
-
-                        bookings[flight_id] = {
-                            "flight": {
-                                "id": flight_id,
-                                "number": record['flight_number'],
-                                "departureDate": {
-                                    "day": record['departure_date'].day,
-                                    "month": record['departure_date'].month,
-                                    "year": record['departure_date'].year
-                                },
-                                "flightTiming": {
-                                    "departureHour": record['departure_time'].hour,
-                                    "departureMinutes": record['departure_time'].minute,
-                                    "arrivalHour": record['arrival_time'].hour,
-                                    "arrivalMinutes": record['arrival_time'].minute
-                                },
-                                "city": {
-                                    "id": record['city_id'],
-                                    "name": record['city_name'],
-                                    "distance": record['distance']
-                                },
-                                "airline": {
-                                    "id": record['id_airline'],
-                                    "name": record['airline_name']
-                                },
-                                "plane": {
-                                    "id": record['id_airplane'],
-                                    "name": record['airplane_name'],
-                                    "model": record['model'],
-                                    "flightDistance": record['flight_distance'],
-                                    "cabin": cabin
-                                }
+                    if flag_id != flight_id:
+                        bookings.append({
+                            "user": {
+                                "id": record['id_client'],
+                                "firstname": record['c_first_name'],
+                                "lastname": record['c_second_name'],
+                                "patronymic": record['c_third_name'],
+                                "email": record['login'],
+                                "phone": record['phone'],
+                                "passSeries": record['c_passport_seria'],
+                                "passNumber": record['c_passport_number']
                             },
-                            "tickets": [],
-                            "passengers": []
+                            "flight": flight,
+                            "tickets": tickets
+                        })
+                        tickets = []
+                        flag_id = flight_id
+                    # Получаем информацию о кабине
+                    cabin = await get_cabin_details(conn, record['id_airplane'])
+
+                    zones = []
+                    for i in range(1, 4):
+                        zone_id = cabin[f'zone{i}']
+                        if zone_id:
+                            zone = await conn.fetchrow(
+                                """
+                                SELECT z.*, zt.type_name 
+                                FROM zone z
+                                JOIN zone_type zt ON z.zone_type_id = zt.id_zone_type
+                                WHERE z.id_zone = $1
+                                """,
+                                zone_id
+                            )
+                            zones.append({
+                                "passes": zone['passes'],
+                                "rows": zone['rows'],
+                                "seatsPerRow": zone['seats_per_row'],
+                                "type": zone['type_name']
+                            })
+
+                    flight = {
+                        "id": flight_id,
+                        "number": record['flight_number'],
+                        "departureDate": {
+                            "day": record['departure_date'].day,
+                            "month": record['departure_date'].month,
+                            "year": record['departure_date'].year
+                        },
+                        "flightTiming": {
+                            "departureHour": int(str(record['departure_time']).split(':')[0]),
+                            "departureMinutes": int(str(record['departure_time']).split(':')[1]),
+                            "arrivalHour": int(str(record['arrival_time']).split(':')[0]),
+                            "arrivalMinutes": int(str(record['arrival_time']).split(':')[1])
+                        },
+                        "city": {
+                            "id": record['city_id'],
+                            "name": record['city_name'],
+                            "distance": record['distance']
+                        },
+                        "airline": {
+                            "id": record['id_airline'],
+                            "name": record['airline_name']
+                        },
+                        "plane": {
+                            "id": record['id_airplane'],
+                            "name": record['airplane_name'],
+                            "model": record['model'],
+                            "flightDistance": record['flight_distance'],
+                            "cabin": {"zones": zones}
                         }
+                    }
+                    tickets.append(
+                        {
+                            "seat": record['seat_number'],
+                            "price": record['price'],
+                            "isCancelled": record['ticket_status'],
+                            "passenger": {
+                                "lastname": record['p_second_name'],
+                                "firstname": record['p_first_name'],
+                                "patronymic": record['p_third_name'],
+                                "passSeries": record['p_passport_seria'],
+                                "passNumber": record['p_passport_number']
+                            }
+                        }
+                    )
 
-                    # Добавляем билет
-                    bookings[flight_id]["tickets"].append({
-                        "id": record['id_ticket'],
-                        "seat": record['seat_number'],
-                        "price": record['price'],
-                        "isCancelled": not record['ticket_status']
-                    })
-
-                    # Добавляем пассажира
-                    bookings[flight_id]["passengers"].append({
-                        "lastname": record['second_name'],
-                        "firstname": record['first_name'],
-                        "patronymic": record['third_name'],
-                        "passSeries": record['passport_seria'],
-                        "passNumber": record['passport_number']
-                    })
-
-                return list(bookings.values())
+                return bookings
 
             finally:
                 await conn.close()
@@ -293,7 +334,7 @@ class ServiceHost():
 
                     # Создание билетов
                     ticket_ids = []
-                    for ticket, passenger in zip(booking_data.tickets, booking_data.passengers):
+                    for ticket in booking_data.tickets:
                         ticket_id = await conn.fetchval(
                             """
                             INSERT INTO ticket (
@@ -325,11 +366,11 @@ class ServiceHost():
                             """,
                             booking_data.user['id'],
                             ticket_id,
-                            passenger.firstname,
-                            passenger.lastname,
-                            passenger.patronymic,
-                            passenger.passSeries,
-                            passenger.passNumber
+                            ticket.passenger.firstname,
+                            ticket.passenger.lastname,
+                            ticket.passenger.patronymic,
+                            ticket.passenger.passSeries,
+                            ticket.passenger.passNumber
                         )
 
                     return {"message": "Бронирование успешно создано", "ticket_ids": ticket_ids}
