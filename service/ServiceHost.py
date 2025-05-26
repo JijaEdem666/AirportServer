@@ -211,6 +211,7 @@ class ServiceHost():
                     }
                     tickets.append(
                         {
+                            "id": record['id_ticket'],
                             "seat": record['seat_number'],
                             "price": record['price'],
                             "isCancelled": record['ticket_status'],
