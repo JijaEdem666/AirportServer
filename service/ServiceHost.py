@@ -101,7 +101,7 @@ class ServiceHost():
                 await conn.close()
 
         # 1. Получение истории бронирований
-        @self.app.get("/bookings/{client_id}", response_model=List[BookingResponse])
+        @self.app.get("/bookings/{client_id}", response_model=List[dict])
         async def get_client_bookings(client_id: int):
             conn = await CommonUtils.get_db_connection()
             try:
