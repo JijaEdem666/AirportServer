@@ -1102,6 +1102,7 @@ class ServiceHost():
                     zones = []
                     for i in range(1, 4):
                         zone_id = cabin[f'zone{i}']
+                        print(zone_id)
                         if zone_id:
                             zone = await conn.fetchrow(
                                 """
@@ -1112,6 +1113,7 @@ class ServiceHost():
                                 """,
                                 zone_id
                             )
+                            print(zone)
                             zones.append({
                                 "passes": zone['passes'],
                                 "rows": zone['rows'],
